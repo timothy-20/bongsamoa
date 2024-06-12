@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="48306712-ef6a-4dcb-aa78-465bde10e901" name="bongsamoa-web-server">
+        <fileTransfer accessType="SFTP" host="3.38.95.79" port="22" sshConfigId="d6ffe6a4-c635-46d8-9f9d-677c9f017fa0" sshConfig="ec2-user@3.38.95.79:22 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
