@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.timothy.bongsamoa.mapper.TKBoardMapper">
+    <resultMap id="boardResult" type="board">
+        <id property="id" column="id" />
+        <result property="title" column="title" />
+        <result property="writer" column="writer" />
+        <result property="creationDate" column="creation_date" jdbcType="TIMESTAMP" javaType="java.sql.Timestamp" />
+        <result property="content" column="content" />
+    </resultMap>
+    
+    <select id="getBoardCount" resultType="int">
+        SELECT COUNT(id) AS boardCount FROM board WHERE 1 = 1
+    </select>
+
+    <select id="selectBoard" resultType="boardResult">
+        SELECT * FROM board WHERE 1 = 1
+        <if test="id != null and !id.equals('')">
+            AND id = #{id}
+        </if>
+    </select>
+
+    <select id="selectAllBoards" parameterType="int" resultType="boardResult">
+        SELECT id, title, writer, creation_date, content
+        FROM board WHERE 1 = 1
+        ORDER BY id DESC
+        LIMIT ${startRow}, ${limitRow}
+    </select>
+
+    <insert id="insertBoard" useGeneratedKeys="true" keyProperty="id" parameterType="board">
+        INSERT INTO board(id, title, writer, creation_date, content)
+        VALUES(#{id}, #{title}, #{writer}, #{creationDate}, #{content})
+    </insert>
+    
+    <update id="updateBoard">
+        UPDATE board SET title = #{title},
+                         content = #{content},
+                         creation_date = #{creationDate}
+        WHERE 1 = 1
+        AND id = #{id}
+        AND writer = #{writer}
+    </update>
+
+    <delete id="deleteBoard">
+        DELETE FROM board
+        WHERE 1 = 1
+        and id = #{id}
+    </delete>
+</mapper>

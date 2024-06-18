@@ -1,13 +1,22 @@
 package com.timothy.bongsamoa.controller;
 
+import com.timothy.bongsamoa.service.TKBoardService;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
+@RequestMapping(value = "/board")
 public class TKBoardController {
-    @RequestMapping(value = "/board", method = RequestMethod.GET)
-    public String display() {
-        return "TKBoardPage";
+    @Resource(name = "boardService")
+    private TKBoardService service;
+
+    public String displayBoardList(HttpServletRequest request, Model model) throws Exception {
+//        TKBoardVO boardVO = new TKBoardVO();
+
+
+        return "TKBoardListPage";
     }
 }

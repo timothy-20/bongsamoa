@@ -58,7 +58,6 @@
             <artifactId>spring-orm</artifactId>
             <version>6.1.8</version>
         </dependency>
-
         <!-- jakarta servlet -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
@@ -69,6 +68,11 @@
         <dependency>
             <groupId>jakarta.servlet.jsp.jstl</groupId>
             <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
             <version>3.0.0</version>
         </dependency>
         <!-- logging -->
@@ -88,6 +92,7 @@
             <artifactId>mariadb-java-client</artifactId>
             <version>3.4.0</version>
         </dependency>
+        <!-- hibernate -->
 <!--        <dependency>-->
 <!--            <groupId>org.hibernate.orm</groupId>-->
 <!--            <artifactId>hibernate-core</artifactId>-->
