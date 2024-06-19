@@ -10,6 +10,6 @@
         <property name="mapperLocations" value="classpath:mapper/*-mapper.xml" />
     </bean>
     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-        <property name="basePackage" value="com.timothy.bongsamoa.service" />
+        <property name="basePackage" value="com.timothy.bongsamoa.mapper" />
     </bean>
 </beans>

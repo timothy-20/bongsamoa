@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.timothy.bongsamoa.mapper.TKBoardMapper">
+    <resultMap id="TKBoardResultMap" type="TKBoardVO">
+        <id property="id" column="id" />
+        <result property="title" column="title" />
+        <result property="writer" column="writer" />
+        <result property="creationDate" column="creation_date" />
+        <result property="content" column="content" />
+    </resultMap>
+
+    <select id="getBoardsCount" resultType="int">
+        SELECT COUNT(id) FROM board WHERE 1 = 1
+        <if test="title != null and !title.isEmpty()">
+            AND title = #{title}
+        </if>
+        <if test="writer != null and !writer.isEmpty()">
+            AND writer = #{writer}
+        </if>
+        <if test="creationDate != null">
+            AND creation_date = #{creationDate}
+        </if>
+    </select>
+
+    <select id="selectAllBoards" resultMap="TKBoardResultMap">
+        SELECT * FROM board
+    </select>
+
+    <select id="selectBoardById" resultMap="TKBoardResultMap">
+        SELECT * FROM board WHERE id = #{id}
+    </select>
+
+    <select id="selectBoard" resultMap="TKBoardResultMap">
+        SELECT * FROM board WHERE 1 = 1
+        <if test="id != 0">
+            AND id = #{id}
+        </if>
+        <if test="title != null and !title.isEmpty()">
+            AND title = #{title}
+        </if>
+        <if test="writer != null and !writer.isEmpty()">
+            AND writer = #{writer}
+        </if>
+        <if test="creationDate != null">
+            AND creation_date = #{creationDate}
+        </if>
+        <if test="content != null">
+            AND content = #{content}
+        </if>
+    </select>
+
+    <insert id="insertBoard">
+        INSERT INTO board(id, title, writer, creation_date, content) VALUES(#{id}, #{title}, #{writer}, #{creationDate}, #{content})
+    </insert>
+
+    <update id="updateBoard">
+        UPDATE board SET title = #{title},
+                         creation_date = #{creationDate},
+                         content = #{content}
+        WHERE id = #{id} AND writer = #{writer}
+    </update>
+
+    <delete id="deleteBoard">
+        DELETE FROM board WHERE id = #{id}
+    </delete>
+</mapper>

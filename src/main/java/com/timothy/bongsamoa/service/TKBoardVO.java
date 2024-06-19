@@ -11,7 +11,7 @@ import java.util.Date;
 @ToString
 @Getter
 public class TKBoardVO {
-    private int id;
+    private Integer id;
     private String title;
     private String writer;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
