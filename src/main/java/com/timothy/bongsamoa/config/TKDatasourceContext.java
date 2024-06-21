@@ -1,6 +1,7 @@
 package com.timothy.bongsamoa.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -22,10 +23,10 @@ public class TKDatasourceContext {
 
     @Bean
     public DataSource dataSource() {
-        String jdbcURL = Objects.requireNonNull(environment.getProperty("jdbc.url"));
-        String jdbcUsername = Objects.requireNonNull(environment.getProperty("jdbc.username"));
-        String jdbcPassword = Objects.requireNonNull(environment.getProperty("jdbc.password"));
-        String jdbcDriver = Objects.requireNonNull(environment.getProperty("jdbc.driver"));
+        String jdbcURL = Objects.requireNonNull(this.environment.getProperty("jdbc.url"));
+        String jdbcUsername = Objects.requireNonNull(this.environment.getProperty("jdbc.username"));
+        String jdbcPassword = Objects.requireNonNull(this.environment.getProperty("jdbc.password"));
+        String jdbcDriver = Objects.requireNonNull(this.environment.getProperty("jdbc.driver"));
 
         DriverManagerDataSource dataSource = new DriverManagerDataSource(jdbcURL, jdbcUsername, jdbcPassword);
         dataSource.setDriverClassName(jdbcDriver);

@@ -1,3 +1,4 @@
+import com.timothy.bongsamoa.config.TKMapperContext;
 import com.timothy.bongsamoa.mapper.TKBoardMapper;
 import com.timothy.bongsamoa.service.TKBoardVO;
 import org.junit.jupiter.api.Test;
@@ -11,10 +12,14 @@ import java.util.ArrayList;
 import java.util.Date;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("file:src/main/webapp/WEB-INF/spring/mapper-context.xml")
+@ContextConfiguration(classes = { TKMapperContext.class })
 public class TKBoardMapperTest {
+    private final TKBoardMapper boardMapper;
+
     @Autowired
-    private TKBoardMapper boardMapper;
+    public TKBoardMapperTest(TKBoardMapper boardMapper) {
+        this.boardMapper = boardMapper;
+    }
 
     @Test
     public void testGetBoardsCount() throws Exception {

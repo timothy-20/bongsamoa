@@ -16,9 +16,8 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 @ComponentScan(
         basePackages = "com.timothy.bongsamoa",
         useDefaultFilters = false,
-        includeFilters = {
-                @ComponentScan.Filter(type = FilterType.ANNOTATION, value = Controller.class)
-        })
+        includeFilters = { @ComponentScan.Filter(type = FilterType.ANNOTATION, value = Controller.class)}
+)
 public class TKServletContext implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {

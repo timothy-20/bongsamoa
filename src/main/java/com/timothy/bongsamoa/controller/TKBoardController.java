@@ -9,9 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping(value = "/board")
 public class TKBoardController {
 
-    public String displayBoardList(HttpServletRequest request, Model model) throws Exception {
-//        TKBoardVO boardVO = new TKBoardVO();
-
-        return "TKBoardListPage";
-    }
+//    public String displayBoardList(HttpServletRequest request, Model model) throws Exception {
+//        return "TKBoardPage";
+//    }
 }

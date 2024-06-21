@@ -23,20 +23,27 @@ public class TKWebInitializer implements WebApplicationInitializer {
 
         DispatcherServlet dispatcherServlet = new DispatcherServlet(webApplicationContext);
         ServletRegistration.Dynamic registration = servletContext.addServlet("appServlet", dispatcherServlet);
-        registration.setLoadOnStartup(1);
-        registration.addMapping("/");
+
+        if (registration != null) {
+            registration.setLoadOnStartup(1);
+            registration.addMapping("/");
+        }
 
         AnnotationConfigWebApplicationContext rootApplicationContext = new AnnotationConfigWebApplicationContext();
-        rootApplicationContext.setConfigLocation("com.timothy.bongsamoa.config");
+        rootApplicationContext.register(TKRootContext.class);
 
         ContextLoaderListener loaderListener = new ContextLoaderListener(rootApplicationContext);
         servletContext.addListener(loaderListener);
+
     }
 
     public void registerCharacterEncodingFilter(ServletContext servletContext) {
         FilterRegistration.Dynamic characterEncodingFilter = servletContext.addFilter("encodingFilter", new CharacterEncodingFilter());
-        characterEncodingFilter.setInitParameter("encoding", "UTF-8");
-        characterEncodingFilter.setInitParameter("forceEncoding", "true");
-        characterEncodingFilter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
+
+        if (characterEncodingFilter != null) {
+            characterEncodingFilter.setInitParameter("encoding", "UTF-8");
+            characterEncodingFilter.setInitParameter("forceEncoding", "true");
+            characterEncodingFilter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
+        }
     }
 }
