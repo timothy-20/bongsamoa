@@ -55,32 +55,3 @@ public class TKStreamConnector {
         return flag;
     }
 }
-
-// 1. open url
-// 2. http response
-class TK {
-    private final TKStreamConnector streamConnector;
-
-    public TK() {
-        this.streamConnector = new TKStreamConnector();
-    }
-
-    public TK(int bufferSize) {
-        this.streamConnector = new TKStreamConnector(bufferSize);
-    }
-
-    public TK(URL sourceURL, URL destinationURL) {
-        InputStream inputStream = sourceURL.openStream();
-        File destinationFile = new File(destinationURL.getFile());
-    }
-
-    public void test() {
-        TKStreamConnector streamConnector = new TKStreamConnector();
-        URL sourceURL = new URL("https://blog.kakaocdn.net/dn/MThfh/btrRtcbb2Xl/zR5vUkvvJNLOPo7kXhkQHK/img.png");
-        InputStream inputStream = sourceURL.openStream();
-        File destinationFile = new File("C:\\Users\\timothy\\IdeaProjects\\demo\\temp", "test1.png");
-        FileOutputStream outputStream = new FileOutputStream(destinationFile);
-
-        this.streamConnector.pipe()
-    }
-}
