@@ -54,6 +54,8 @@ public class TKTest {
         String destinationFilePath = "C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\test.html";
         File destinationFile = new File(destinationFilePath);
         TKFileLoader fileLoader = new TKFileLoader(destinationFile);
-        fileLoader.createTempFile();
+        FileOutputStream fileOutputStream = fileLoader.getFileOutputStream();
+
+        //
     }
 }
