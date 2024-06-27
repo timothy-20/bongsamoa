@@ -36,20 +36,6 @@ public class TKStreamConnector {
 
         } catch (Exception e) {
             System.out.println("데이터를 읽는데 실패했습니다. 사유: " + e.getMessage());
-
-        } finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-
-                if (outputStream != null) {
-                    outputStream.close();
-                }
-
-            } catch (Exception e) {
-                System.out.println("입력 스트림을 마무리하는데 실패했습니다. 사유: " + e.getMessage());
-            }
         }
 
         return flag;

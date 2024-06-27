@@ -22,6 +22,9 @@ public class TKTest {
         if (streamConnector.pipe(inputStream, outputStream)) {
             System.out.println("다운로드 성공, 총 다운로드 크기: " + streamConnector.getTotalDataSize() + "bytes");
         }
+
+        inputStream.close();
+        outputStream.close();
     }
 
     @Test
@@ -35,6 +38,9 @@ public class TKTest {
         if (streamConnector.pipe(inputStream, outputStream)) {
             System.out.println("다운로드 성공, 총 다운로드 크기: " + streamConnector.getTotalDataSize() + "bytes");
         }
+
+        inputStream.close();
+        outputStream.close();
     }
 
     @Test
@@ -50,12 +56,17 @@ public class TKTest {
     }
 
     @Test
-    public void testFileLoader() throws Exception {
+    public void testFileSave() throws Exception {
         String destinationFilePath = "C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\test.html";
         File destinationFile = new File(destinationFilePath);
         TKFileLoader fileLoader = new TKFileLoader(destinationFile);
         FileOutputStream fileOutputStream = fileLoader.getFileOutputStream();
+        fileOutputStream.write("Hello, World!".getBytes());
+        fileLoader.save();
 
-        //
+    }
+
+    @Test void testFileSaveAs() throws Exception {
+
     }
 }
