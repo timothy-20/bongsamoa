@@ -3,8 +3,11 @@ package com.timothy.bongsamoa;
 import lombok.Getter;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.*;
 import java.util.*;
 
@@ -25,6 +28,19 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
 
         this.originalFile = targetFile;
         this.tempFile = this.createTempFile(this.originalFile);
+        this.tempFile.deleteOnExit();
+        this.setHidden(this.tempFile);
+
+        try (FileChannel tempFileChannel = FileChannel.open(this.tempFile.toPath(), StandardOpenOption.WRITE)) {
+            ByteBuffer byteBuffer = ByteBuffer.wrap("Test Words...".getBytes());
+            int length = tempFileChannel.write(byteBuffer);
+
+            System.out.println("abcd");
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
         this.fileOutputStream = new FileOutputStream(this.tempFile);
 
         this.lockFile(this.originalFile);
@@ -35,11 +51,15 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
         if (this.fileOutputStream != null) {
             this.fileOutputStream.close();
         }
+
+        this.unlockFile(this.originalFile);
     }
 
     @Override
     public void save() throws IOException {
+        this.unlockFile(this.originalFile);
         this.saveTo(this.tempFile, this.originalFile);
+        this.lockFile(this.originalFile);
     }
 
     @Override
@@ -72,27 +92,26 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
         String originalFileExtension = originalFileName.substring(dotIndex);
         originalFileName = originalFileName.substring(0, dotIndex);
         // 임시 파일 생성
-        Path tempFilePath = Files.createTempFile(originalFile.getParentFile().toPath(), originalFileName, originalFileExtension);
-        this.setTempFileAttributes(tempFilePath.toFile());
-        // 프로세스 종료 시, 임시 파일이 제거되도록 트리거
-        File tempFile = tempFilePath.toFile();
-        tempFile.deleteOnExit();
-        return tempFile;
+        return Files.createTempFile(originalFile.getParentFile().toPath(), originalFileName, originalFileExtension).toFile();
     }
 
-    private void setTempFileAttributes(File tempFile) throws IOException {
+    private void setHidden(File tempFile) throws IOException {
         Path tempFilePath = tempFile.toPath();
         // 파일 특성 숨김 처리
         DosFileAttributeView dosFileAttributeView = Files.getFileAttributeView(tempFilePath, DosFileAttributeView.class);
         dosFileAttributeView.setHidden(true);
     }
 
+    private UserPrincipal getCurrentUserPrincipal(File file) throws IOException {
+        String currentUsername = System.getProperty("user.name");
+        UserPrincipalLookupService userPrincipalLookupService = file.toPath().getFileSystem().getUserPrincipalLookupService();
+        return userPrincipalLookupService.lookupPrincipalByName(currentUsername);
+    }
+
     private void lockFile(File file) throws IOException {
         Path originalFilePath = file.toPath();
         // 현재 사용자의 upn 가져오기
-        String currentUsername = System.getProperty("user.name");
-        UserPrincipalLookupService userPrincipalLookupService = originalFilePath.getFileSystem().getUserPrincipalLookupService();
-        UserPrincipal currentUserPrincipal = userPrincipalLookupService.lookupPrincipalByName(currentUsername);
+        UserPrincipal currentUserPrincipal = this.getCurrentUserPrincipal(file);
         // acl 권한 거부에 대한 설정 객체 생성하기
         AclEntry denyAclEntry = AclEntry.newBuilder()
                 .setType(AclEntryType.DENY)
@@ -112,7 +131,15 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
     }
 
     private void unlockFile(File file) throws IOException {
+        UserPrincipal currentUserPrincipal = this.getCurrentUserPrincipal(file);
+        AclFileAttributeView aclFileAttributeView = Files.getFileAttributeView(file.toPath(), AclFileAttributeView.class);
+        List<AclEntry> aclEntryList = aclFileAttributeView.getAcl();
+        aclEntryList.removeIf(aclEntry ->
+                aclEntry.type() == AclEntryType.DENY
+                && aclEntry.principal().equals(currentUserPrincipal)
+        );
 
+        aclFileAttributeView.setAcl(aclEntryList);
     }
 
     private void saveTo(File file, File targetFile) throws IOException {
