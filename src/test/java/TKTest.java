@@ -3,6 +3,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 public class TKTest {
     @Test
@@ -59,14 +61,24 @@ public class TKTest {
     public void testFileSave() throws Exception {
         String destinationFilePath = "C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\test.html";
         File destinationFile = new File(destinationFilePath);
-        TKFileLoader fileLoader = new TKFileLoader(destinationFile);
-        FileOutputStream fileOutputStream = fileLoader.getFileOutputStream();
-        fileOutputStream.write("Hello, World!".getBytes());
-        fileLoader.save();
 
+        try (TKFileLoader fileLoader = new TKFileLoader(destinationFile)) {
+            FileChannel fileChannel = fileLoader.getFileChannel();
+
+            ByteBuffer buffer = ByteBuffer.allocate(16);
+            buffer.put("Hello, World!".getBytes());
+            buffer.flip();
+
+            int length = fileChannel.write(buffer);
+
+            System.out.println("Write bytes length: " + length);
+
+            fileLoader.save();
+        }
     }
 
     @Test void testFileSaveAs() throws Exception {
-
+        String destinationFilePath = "";
+        TKFileLoader fileLoader = new TKFileLoader(destinationFilePath);
     }
 }

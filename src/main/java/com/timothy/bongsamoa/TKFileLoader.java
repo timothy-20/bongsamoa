@@ -19,37 +19,20 @@ interface TKLoadable {
 public class TKFileLoader implements TKLoadable, AutoCloseable {
     private final File originalFile;
     private final File tempFile;
-    @Getter private final FileOutputStream fileOutputStream;
+    @Getter private final FileChannel fileChannel;
 
     public TKFileLoader(File targetFile) throws IOException, RuntimeException {
-        if (!targetFile.exists()) {
-            throw new FileNotFoundException(targetFile.getAbsolutePath());
-        }
+        this.initWithFile(targetFile);
+    }
 
-        this.originalFile = targetFile;
-        this.tempFile = this.createTempFile(this.originalFile);
-        this.tempFile.deleteOnExit();
-        this.setHidden(this.tempFile);
-
-        try (FileChannel tempFileChannel = FileChannel.open(this.tempFile.toPath(), StandardOpenOption.WRITE)) {
-            ByteBuffer byteBuffer = ByteBuffer.wrap("Test Words...".getBytes());
-            int length = tempFileChannel.write(byteBuffer);
-
-            System.out.println("abcd");
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-
-        this.fileOutputStream = new FileOutputStream(this.tempFile);
-
-        this.lockFile(this.originalFile);
+    public TKFileLoader(String targetFilePath) throws IOException, RuntimeException {
+        this.initWithFile(new File(targetFilePath));
     }
 
     @Override
     public void close() throws Exception {
-        if (this.fileOutputStream != null) {
-            this.fileOutputStream.close();
+        if (this.fileChannel != null) {
+            this.fileChannel.close();
         }
 
         this.unlockFile(this.originalFile);
@@ -79,9 +62,22 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
             FileInputStream tempFileInputStream = new FileInputStream(this.tempFile);
             Files.copy(tempFileInputStream, newFile.toPath());
             tempFileInputStream.close();
-
-            System.out.println("abcd");
         }
+    }
+
+    private void initWithFile(File targetFile) throws IOException, RuntimeException {
+        if (!targetFile.exists()) {
+            throw new FileNotFoundException(targetFile.getAbsolutePath());
+        }
+
+        this.originalFile = targetFile;
+        this.tempFile = this.createTempFile(this.originalFile);
+        this.tempFile.deleteOnExit();
+        this.setHidden(this.tempFile);
+
+        this.fileChannel = FileChannel.open(this.tempFile.toPath(), StandardOpenOption.WRITE);
+
+        this.lockFile(this.originalFile);
     }
 
     // 임시 파일 삭제 여부에 대한 옵션도 두면 좋을 듯 하다(좀 더 고려해볼 것)
@@ -117,6 +113,7 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
                 .setType(AclEntryType.DENY)
                 .setPermissions(
                         AclEntryPermission.WRITE_ACL,
+                        AclEntryPermission.WRITE_DATA,
                         AclEntryPermission.READ_DATA,
                         AclEntryPermission.EXECUTE
                 )
@@ -134,12 +131,10 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
         UserPrincipal currentUserPrincipal = this.getCurrentUserPrincipal(file);
         AclFileAttributeView aclFileAttributeView = Files.getFileAttributeView(file.toPath(), AclFileAttributeView.class);
         List<AclEntry> aclEntryList = aclFileAttributeView.getAcl();
-        aclEntryList.removeIf(aclEntry ->
-                aclEntry.type() == AclEntryType.DENY
-                && aclEntry.principal().equals(currentUserPrincipal)
-        );
 
-        aclFileAttributeView.setAcl(aclEntryList);
+        if (aclEntryList.removeIf(aclEntry -> aclEntry.type() == AclEntryType.DENY && aclEntry.principal().equals(currentUserPrincipal))) {
+            aclFileAttributeView.setAcl(aclEntryList);
+        }
     }
 
     private void saveTo(File file, File targetFile) throws IOException {
