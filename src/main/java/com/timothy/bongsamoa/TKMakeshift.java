@@ -1,11 +1,11 @@
 package com.timothy.bongsamoa;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
 import java.util.Random;
 
 // 고려할 사항들
@@ -22,17 +22,11 @@ public class TKMakeshift {
 
     }
 
-    public void test() {
-//        TKStreamConnector streamConnector = new TKStreamConnector();
-//        URL sourceURL = new URL("https://blog.kakaocdn.net/dn/MThfh/btrRtcbb2Xl/zR5vUkvvJNLOPo7kXhkQHK/img.png");
-//        InputStream inputStream = sourceURL.openStream();
-//        File destinationFile = new File("C:\\Users\\timothy\\IdeaProjects\\demo\\temp", "test1.png");
-//        FileOutputStream outputStream = new FileOutputStream(destinationFile);
-//
-//        this.streamConnector.pipe()
+    public void test() throws IOException {
+
     }
 
-    public void prepareFile(File destinationFile) throws IOException, RuntimeException {
+    public void prepareFile(@Nonnull File destinationFile) throws IOException, RuntimeException {
         File currentDirectory;
 
         if (destinationFile.exists()) {

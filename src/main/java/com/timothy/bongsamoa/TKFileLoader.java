@@ -1,9 +1,10 @@
 package com.timothy.bongsamoa;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,22 +12,25 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.*;
 import java.util.*;
 
-interface TKLoadable {
-    void save() throws Exception;
-    void saveAs(File newFile) throws Exception;
-}
-
 public class TKFileLoader implements TKLoadable, AutoCloseable {
     private final File originalFile;
     private final File tempFile;
     @Getter private final FileChannel fileChannel;
 
-    public TKFileLoader(File targetFile) throws IOException, RuntimeException {
-        this.initWithFile(targetFile);
+    public TKFileLoader(@Nonnull File targetFile, @Nullable File tempDirectory) throws IOException, RuntimeException {
+        if (targetFile == null || !targetFile.exists()) {
+            throw new IllegalArgumentException("값이 없거나 실제로 존재하지 않는 대상 파일 객체입니다.");
+        }
+
+        this.originalFile = targetFile;
+        this.lockFile(this.originalFile);
+
+        this.tempFile = this.createTempFile(this.originalFile, tempDirectory != null ? tempDirectory : this.originalFile.getParentFile());
+        this.fileChannel = FileChannel.open(this.tempFile.toPath(), StandardOpenOption.WRITE);
     }
 
-    public TKFileLoader(String targetFilePath) throws IOException, RuntimeException {
-        this.initWithFile(new File(targetFilePath));
+    public TKFileLoader(@Nonnull File targetFile) throws IOException, RuntimeException {
+        this(targetFile, null);
     }
 
     @Override
@@ -51,59 +55,57 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
             this.saveTo(this.tempFile, newFile);
 
         } else {
-//            File newFileDirectory = newFile.getParentFile();
-//
-//            if (!newFileDirectory.exists()) {
-//                if (!newFileDirectory.mkdirs()) {
-//                    throw new RuntimeException("다른 이름으로 저장할 파일을 위한 경로를 생성하지 못했습니다.");
-//                }
-//            }
-
             FileInputStream tempFileInputStream = new FileInputStream(this.tempFile);
             Files.copy(tempFileInputStream, newFile.toPath());
             tempFileInputStream.close();
         }
     }
 
-    private void initWithFile(File targetFile) throws IOException, RuntimeException {
-        if (!targetFile.exists()) {
-            throw new FileNotFoundException(targetFile.getAbsolutePath());
+    public void hideTempFile(boolean flag) throws IOException {
+        this.setHidden(this.tempFile, flag);
+    }
+
+    public void deleteTempFileOnExit() {
+        this.tempFile.deleteOnExit();
+    }
+
+    private File createTempFile(File originalFile, File directory) throws IOException {
+        if (originalFile == null || !originalFile.exists()) {
+            throw new IllegalArgumentException("값이 없거나 실제로 존재하지 않는 원본 파일 객체입니다.");
         }
 
-        this.originalFile = targetFile;
-        this.tempFile = this.createTempFile(this.originalFile);
-        this.tempFile.deleteOnExit();
-        this.setHidden(this.tempFile);
+        if (directory == null || !directory.exists() || !directory.isDirectory()) {
+            throw new IllegalArgumentException("임시 파일을 위한 디렉토리 객체가 정상적이지 않습니다.");
+        }
 
-        this.fileChannel = FileChannel.open(this.tempFile.toPath(), StandardOpenOption.WRITE);
-
-        this.lockFile(this.originalFile);
-    }
-
-    // 임시 파일 삭제 여부에 대한 옵션도 두면 좋을 듯 하다(좀 더 고려해볼 것)
-    private File createTempFile(File originalFile) throws IOException {
         // 확장자를 제거한 파일명 가져오기
-        String originalFileName = originalFile.getName();
-        int dotIndex = originalFileName.lastIndexOf('.');
-        String originalFileExtension = originalFileName.substring(dotIndex);
-        originalFileName = originalFileName.substring(0, dotIndex);
+        String fileName = originalFile.getName();
+        int dotIndex = fileName.lastIndexOf('.');
+        String fileExtension = fileName.substring(dotIndex);
+        fileName = fileName.substring(0, dotIndex);
+
         // 임시 파일 생성
-        return Files.createTempFile(originalFile.getParentFile().toPath(), originalFileName, originalFileExtension).toFile();
+        return Files.createTempFile(directory.toPath(), fileName, fileExtension).toFile();
     }
 
-    private void setHidden(File tempFile) throws IOException {
-        Path tempFilePath = tempFile.toPath();
+    private void setHidden(File file, boolean flag) throws IOException {
+        if (file == null || !file.exists()) {
+            throw new IllegalArgumentException("값이 없거나 실제로 존재하지 않는 숨김 파일 객체입니다.");
+        }
+
         // 파일 특성 숨김 처리
-        DosFileAttributeView dosFileAttributeView = Files.getFileAttributeView(tempFilePath, DosFileAttributeView.class);
-        dosFileAttributeView.setHidden(true);
+        DosFileAttributeView dosFileAttributeView = Files.getFileAttributeView(file.toPath(), DosFileAttributeView.class);
+        dosFileAttributeView.setHidden(flag);
     }
 
     private UserPrincipal getCurrentUserPrincipal(File file) throws IOException {
         String currentUsername = System.getProperty("user.name");
         UserPrincipalLookupService userPrincipalLookupService = file.toPath().getFileSystem().getUserPrincipalLookupService();
+
         return userPrincipalLookupService.lookupPrincipalByName(currentUsername);
     }
 
+    // thread safe 하게 구현할 수 있는 방법을 생각해야 됨
     private void lockFile(File file) throws IOException {
         Path originalFilePath = file.toPath();
         // 현재 사용자의 upn 가져오기

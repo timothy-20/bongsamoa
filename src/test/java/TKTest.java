@@ -5,6 +5,10 @@ import java.io.*;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 public class TKTest {
     @Test
@@ -58,9 +62,48 @@ public class TKTest {
     }
 
     @Test
+    public void testB() throws Exception {
+        URL sourceURL = new URL("https://blog.kakaocdn.net/dn/MThfh/btrRtcbb2Xl/zR5vUkvvJNLOPo7kXhkQHK/img.png");
+        Path sourcePath = Paths.get(sourceURL.toURI());
+        FileChannel fileChannel = FileChannel.open(sourcePath, StandardOpenOption.READ);
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+
+        fileChannel.read(buffer);
+
+        System.out.println("test");
+
+
+//        InputStream inputStream = sourceURL.openStream();
+
+
+//        File destinationFile = new File("C:\\Users\\timothy\\IdeaProjects\\demo\\temp", "test1.png");
+//        TKFileLoader fileLoader = new TKFileLoader(destinationFile);
+//
+//
+//
+//        fileLoader.getFileChannel()
+//
+//        fileLoader.close();
+    }
+
+    @Test
+    public void testFileTempLocation() throws Exception {
+        File destinationFile = new File("C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\test.html");
+        File tempDirectory = new File("C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\etc"); // aaaaa.txt
+        TKFileLoader fileLoader = new TKFileLoader(destinationFile, tempDirectory);
+        ByteBuffer buffer = ByteBuffer.allocate(128);
+        buffer.put("ABCDE".getBytes());
+        buffer.flip();
+
+        int length = fileLoader.getFileChannel().write(buffer);
+        System.out.println("Write bytes length: " + length);
+
+        fileLoader.close();
+    }
+
+    @Test
     public void testFileSave() throws Exception {
-        String destinationFilePath = "C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\test.html";
-        File destinationFile = new File(destinationFilePath);
+        File destinationFile = new File("C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\test.html");
 
         try (TKFileLoader fileLoader = new TKFileLoader(destinationFile)) {
             FileChannel fileChannel = fileLoader.getFileChannel();
@@ -70,7 +113,6 @@ public class TKTest {
             buffer.flip();
 
             int length = fileChannel.write(buffer);
-
             System.out.println("Write bytes length: " + length);
 
             fileLoader.save();
@@ -78,7 +120,18 @@ public class TKTest {
     }
 
     @Test void testFileSaveAs() throws Exception {
-        String destinationFilePath = "";
-        TKFileLoader fileLoader = new TKFileLoader(destinationFilePath);
+        File destinationFile = new File("C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\test.html");
+        TKFileLoader fileLoader = new TKFileLoader(destinationFile);
+        ByteBuffer buffer = ByteBuffer.allocate(128);
+        buffer.put("Test save as feature.".getBytes());
+        buffer.flip();
+
+        int length = fileLoader.getFileChannel().write(buffer);
+        System.out.println("Write bytes length: " + length);
+
+        File newFile = new File("C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\a\\test.html");
+
+        fileLoader.saveAs(newFile);
+        fileLoader.close();
     }
 }
