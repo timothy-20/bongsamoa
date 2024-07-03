@@ -18,7 +18,7 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
     @Getter private final FileChannel fileChannel;
 
     public TKFileLoader(@Nonnull File targetFile, @Nullable File tempDirectory) throws IOException, RuntimeException {
-        if (targetFile == null || !targetFile.exists()) {
+        if (targetFile == null || !targetFile.isFile()) {
             throw new IllegalArgumentException("값이 없거나 실제로 존재하지 않는 대상 파일 객체입니다.");
         }
 
@@ -45,14 +45,18 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
     @Override
     public void save() throws IOException {
         this.unlockFile(this.originalFile);
-        this.saveTo(this.tempFile, this.originalFile);
+        this.copyTo(this.tempFile, this.originalFile);
         this.lockFile(this.originalFile);
     }
 
     @Override
     public void saveAs(File newFile) throws Exception {
-        if (newFile.exists()) {
-            this.saveTo(this.tempFile, newFile);
+        if (newFile == null) {
+            throw new IllegalArgumentException("값이 없는 파일 객체입니다.");
+        }
+
+        if (newFile.isFile()) {
+            this.copyTo(this.tempFile, newFile);
 
         } else {
             FileInputStream tempFileInputStream = new FileInputStream(this.tempFile);
@@ -70,11 +74,11 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
     }
 
     private File createTempFile(File originalFile, File directory) throws IOException {
-        if (originalFile == null || !originalFile.exists()) {
+        if (originalFile == null || !originalFile.isFile()) {
             throw new IllegalArgumentException("값이 없거나 실제로 존재하지 않는 원본 파일 객체입니다.");
         }
 
-        if (directory == null || !directory.exists() || !directory.isDirectory()) {
+        if (directory == null || !directory.isDirectory()) {
             throw new IllegalArgumentException("임시 파일을 위한 디렉토리 객체가 정상적이지 않습니다.");
         }
 
@@ -90,7 +94,7 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
 
     private void setHidden(File file, boolean flag) throws IOException {
         if (file == null || !file.exists()) {
-            throw new IllegalArgumentException("값이 없거나 실제로 존재하지 않는 숨김 파일 객체입니다.");
+            throw new IllegalArgumentException("값이 없거나 실제로 존재하지 않는 숨김 파일 혹은 디렉토리 객체입니다.");
         }
 
         // 파일 특성 숨김 처리
@@ -99,6 +103,10 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
     }
 
     private UserPrincipal getCurrentUserPrincipal(File file) throws IOException {
+        if (file == null || !file.exists()) {
+            throw new IllegalArgumentException("값이 없거나 실제로 존재하지 않는 숨김 파일 혹은 디렉토리 객체입니다.");
+        }
+
         String currentUsername = System.getProperty("user.name");
         UserPrincipalLookupService userPrincipalLookupService = file.toPath().getFileSystem().getUserPrincipalLookupService();
 
@@ -107,6 +115,10 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
 
     // thread safe 하게 구현할 수 있는 방법을 생각해야 됨
     private void lockFile(File file) throws IOException {
+        if (file == null || !file.exists()) {
+            throw new IllegalArgumentException("값이 없거나 실제로 존재하지 않는 숨김 파일 혹은 디렉토리 객체입니다.");
+        }
+
         Path originalFilePath = file.toPath();
         // 현재 사용자의 upn 가져오기
         UserPrincipal currentUserPrincipal = this.getCurrentUserPrincipal(file);
@@ -130,6 +142,10 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
     }
 
     private void unlockFile(File file) throws IOException {
+        if (file == null || !file.exists()) {
+            throw new IllegalArgumentException("값이 없거나 실제로 존재하지 않는 숨김 파일 혹은 디렉토리 객체입니다.");
+        }
+
         UserPrincipal currentUserPrincipal = this.getCurrentUserPrincipal(file);
         AclFileAttributeView aclFileAttributeView = Files.getFileAttributeView(file.toPath(), AclFileAttributeView.class);
         List<AclEntry> aclEntryList = aclFileAttributeView.getAcl();
@@ -139,9 +155,17 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
         }
     }
 
-    private void saveTo(File file, File targetFile) throws IOException {
+    private void copyTo(@Nonnull File originalFile, @Nonnull File targetFile) throws IOException {
+        if (originalFile == null || !originalFile.isFile()) {
+            throw new IllegalArgumentException("값이 없거나 파일이 아닌 원본 파일 객체입니다.");
+        }
+
+        if (targetFile == null || !targetFile.isFile()) {
+            throw new IllegalArgumentException("값이 없거나 파일이 아닌 대상 파일 객체입니다.");
+        }
+
         FileOutputStream targetFileOutputStream = new FileOutputStream(targetFile);
-        Files.copy(file.toPath(), targetFileOutputStream);
+        Files.copy(originalFile.toPath(), targetFileOutputStream);
         targetFileOutputStream.close();
 
         Files.setLastModifiedTime(targetFile.toPath(), FileTime.fromMillis(System.currentTimeMillis()));

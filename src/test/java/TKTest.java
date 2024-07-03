@@ -3,8 +3,11 @@ import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -62,28 +65,93 @@ public class TKTest {
     }
 
     @Test
-    public void testB() throws Exception {
+    public void testCollaborateWithBufferInputStream() throws Exception {
+        File destinationFile = new File("C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp", "test1.png");
+
+        if (!destinationFile.exists()) {
+            if (!destinationFile.createNewFile()) {
+                throw new RuntimeException("이미지 파일 생성에 실패했습니다.");
+            }
+        }
+
+        TKFileLoader fileLoader = new TKFileLoader(destinationFile);
         URL sourceURL = new URL("https://blog.kakaocdn.net/dn/MThfh/btrRtcbb2Xl/zR5vUkvvJNLOPo7kXhkQHK/img.png");
-        Path sourcePath = Paths.get(sourceURL.toURI());
-        FileChannel fileChannel = FileChannel.open(sourcePath, StandardOpenOption.READ);
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        BufferedInputStream urlStream = new BufferedInputStream(sourceURL.openStream());
+        byte[] bytes = urlStream.readAllBytes();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length + 1);
+        byteBuffer.put(bytes);
+        byteBuffer.flip();
 
-        fileChannel.read(buffer);
+        int length = fileLoader.getFileChannel().write(byteBuffer);
+        System.out.println("Write bytes length: " + length);
 
-        System.out.println("test");
+        urlStream.close();
+        fileLoader.close();
+    }
 
+    @Test
+    public void testCollaborateWithFileInputStream() throws Exception {
+        File destinationFile = new File("C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp", "test2.png");
 
-//        InputStream inputStream = sourceURL.openStream();
+        if (!destinationFile.exists()) {
+            if (!destinationFile.createNewFile()) {
+                throw new RuntimeException("이미지 파일 생성에 실패했습니다.");
+            }
+        }
 
+        TKFileLoader fileLoader = new TKFileLoader(destinationFile);
+        URL sourceURL = new URL("https://blog.kakaocdn.net/dn/MThfh/btrRtcbb2Xl/zR5vUkvvJNLOPo7kXhkQHK/img.png");
+        ReadableByteChannel readableByteChannel = Channels.newChannel(sourceURL.openStream());
+        ByteBuffer buffer = ByteBuffer.allocate(1024); // 버퍼의 크기를 예상하기가 어려움
 
-//        File destinationFile = new File("C:\\Users\\timothy\\IdeaProjects\\demo\\temp", "test1.png");
-//        TKFileLoader fileLoader = new TKFileLoader(destinationFile);
-//
-//
-//
-//        fileLoader.getFileChannel()
-//
-//        fileLoader.close();
+        readableByteChannel.read(buffer);
+
+        int length = fileLoader.getFileChannel().write(buffer);
+        System.out.println("Write bytes length: " + length);
+
+        readableByteChannel.close();
+        fileLoader.close();
+    }
+
+    @Test
+    public void test() throws Exception {
+
+    }
+
+    @Test
+    public void testMarkAndReset() throws Exception {
+        File destinationFile = new File("C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp", "untitled0.txt");
+        FileInputStream fileInputStream = new FileInputStream(destinationFile);
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+
+        if (bufferedInputStream.markSupported()) {
+            System.out.println((char)bufferedInputStream.read());
+
+            bufferedInputStream.mark(7);
+
+            for (int i = 0; i < 11; i++) {
+                System.out.print((char)bufferedInputStream.read());
+            }
+
+            System.out.println();
+            bufferedInputStream.reset();
+
+            for (int i = 0; i < 22; i++) {
+                System.out.print((char)bufferedInputStream.read());
+            }
+
+            System.out.println();
+            bufferedInputStream.reset();
+
+            for (int i = 0; i < 5; i++) {
+                System.out.print((char)bufferedInputStream.read());
+            }
+
+            System.out.println();
+        }
+
+        bufferedInputStream.close();
+        fileInputStream.close();
     }
 
     @Test
