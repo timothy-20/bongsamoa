@@ -12,17 +12,7 @@ import java.util.Random;
 // 1. open url
 // 2. http response
 public class TKMakeshift {
-    //    private final TKStreamConnector streamConnector;
-
-    public TKMakeshift(String destinationFilePath) {
-
-    }
-
-    public TKMakeshift(File destinationFile) {
-
-    }
-
-    public void test() throws IOException {
+    public TKMakeshift() {
 
     }
 

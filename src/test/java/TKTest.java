@@ -2,12 +2,14 @@ import com.timothy.bongsamoa.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.SocketChannel;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,13 +56,13 @@ public class TKTest {
 
     @Test
     public void testA() throws Exception {
+        TKMakeshift makeshift = new TKMakeshift();
+
 //        String path1 = "C:\\Users\\timothy\\IdeaProjects\\a\\b\\test.txt";
 //        String path2 = "C:\\Users\\timothy\\IdeaProjects\\demo\\temp\\zzz.txt";
 //        String path3 = "C:\\Users\\timothy\\IdeaProjects\\a\\b";
         String path = "C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\new\\a\\b\\c\\test.html"; // nope.txt
         File destinationFile = new File(path);
-
-        TKMakeshift makeshift = new TKMakeshift(path);
         makeshift.prepareFile(destinationFile);
     }
 
@@ -102,9 +104,10 @@ public class TKTest {
         TKFileLoader fileLoader = new TKFileLoader(destinationFile);
         URL sourceURL = new URL("https://blog.kakaocdn.net/dn/MThfh/btrRtcbb2Xl/zR5vUkvvJNLOPo7kXhkQHK/img.png");
         ReadableByteChannel readableByteChannel = Channels.newChannel(sourceURL.openStream());
-        ByteBuffer buffer = ByteBuffer.allocate(1024); // 버퍼의 크기를 예상하기가 어려움
+        ByteBuffer buffer = ByteBuffer.allocate(30000); // 버퍼의 크기를 예상하기가 어려움
 
         readableByteChannel.read(buffer);
+        buffer.flip();
 
         int length = fileLoader.getFileChannel().write(buffer);
         System.out.println("Write bytes length: " + length);
@@ -114,8 +117,21 @@ public class TKTest {
     }
 
     @Test
-    public void test() throws Exception {
+    public void testSocketChannel() throws Exception {
+        SocketChannel socketChannel = SocketChannel.open();
+        socketChannel.configureBlocking(false);
 
+//        InetSocketAddress address = new InetSocketAddress("https://blog.kakaocdn.net/dn/MThfh/btrRtcbb2Xl/zR5vUkvvJNLOPo7kXhkQHK/img.png", 443);
+        InetSocketAddress address = new InetSocketAddress("https://www.naver.com/", 80);
+        socketChannel.connect(address);
+
+        ByteBuffer buffer = ByteBuffer.allocate(30000);
+        int length = socketChannel.read(buffer);
+        buffer.flip();
+
+        System.out.println("test");
+
+        socketChannel.close();
     }
 
     @Test
@@ -187,7 +203,8 @@ public class TKTest {
         }
     }
 
-    @Test void testFileSaveAs() throws Exception {
+    @Test
+    public void testFileSaveAs() throws Exception {
         File destinationFile = new File("C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\test.html");
         TKFileLoader fileLoader = new TKFileLoader(destinationFile);
         ByteBuffer buffer = ByteBuffer.allocate(128);
@@ -201,5 +218,10 @@ public class TKTest {
 
         fileLoader.saveAs(newFile);
         fileLoader.close();
+    }
+
+    @Test
+    public void test() throws Exception {
+
     }
 }

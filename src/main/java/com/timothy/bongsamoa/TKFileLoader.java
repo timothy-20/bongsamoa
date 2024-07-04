@@ -113,7 +113,7 @@ public class TKFileLoader implements TKLoadable, AutoCloseable {
         return userPrincipalLookupService.lookupPrincipalByName(currentUsername);
     }
 
-    // thread safe 하게 구현할 수 있는 방법을 생각해야 됨
+    // thread safe 하게 구현할 수 있는 방법을 고안할 것
     private void lockFile(File file) throws IOException {
         if (file == null || !file.exists()) {
             throw new IllegalArgumentException("값이 없거나 실제로 존재하지 않는 숨김 파일 혹은 디렉토리 객체입니다.");
