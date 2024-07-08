@@ -4,16 +4,8 @@ import org.junit.jupiter.api.Test;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URL;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.channels.*;
 
 public class TKTest {
     @Test
@@ -117,17 +109,45 @@ public class TKTest {
     }
 
     @Test
-    public void testSocketChannel() throws Exception {
+    public void testServerSocketChannel() throws Exception {
+        InetSocketAddress address = new InetSocketAddress(9000);
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        serverSocketChannel.bind(address);
+
+        // block 방식으로 연결
+        final SocketChannel socketChannel = serverSocketChannel.accept();
+
+        System.out.println("Get socket channel: " + socketChannel.toString());
+
+//        while (true) {
+//            SocketChannel socketChannel = serverSocketChannel.accept();
+//        }
+
+        serverSocketChannel.close();
+    }
+
+    @Test
+    public void testClientSocketChannel() throws Exception {
         SocketChannel socketChannel = SocketChannel.open();
+        InetSocketAddress address = new InetSocketAddress(9000);
+        socketChannel.connect(address);
         socketChannel.configureBlocking(false);
 
-//        InetSocketAddress address = new InetSocketAddress("https://blog.kakaocdn.net/dn/MThfh/btrRtcbb2Xl/zR5vUkvvJNLOPo7kXhkQHK/img.png", 443);
-        InetSocketAddress address = new InetSocketAddress("https://www.naver.com/", 80);
-        socketChannel.connect(address);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        int length;
 
-        ByteBuffer buffer = ByteBuffer.allocate(30000);
-        int length = socketChannel.read(buffer);
-        buffer.flip();
+        length = socketChannel.read(buffer);
+
+        System.out.println("test");
+
+
+        while ((length = socketChannel.read(buffer)) != -1) {
+            byteArrayOutputStream.write(buffer.array(), 0, length);
+            buffer.clear();
+
+            int a = 10;
+        }
 
         System.out.println("test");
 
