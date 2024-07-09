@@ -51,6 +51,21 @@ public class TKDocument implements Appendable, Readable {
         this.readIndex = 0;
     }
 
+    public TKDocument insert(CharSequence csq) {
+//        this.stringBuilder.insert
+//        this.stringBuilder.replace()
+//        this.stringBuilder.setCharAt();
+
+        return this;
+    }
+
+    public TKDocument delete() {
+//        this.stringBuilder.delete()
+//        this.stringBuilder.deleteCharAt()
+
+        return this;
+    }
+
     @Override
     public TKDocument append(char c) {
         if (this.cursor.getEnd() == this.stringBuilder.length()) {
@@ -58,6 +73,7 @@ public class TKDocument implements Appendable, Readable {
 
 
         } else {
+            // 커서가 문자열 중간에 위치한 경우
 
         }
 
