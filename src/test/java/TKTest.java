@@ -239,9 +239,4 @@ public class TKTest {
         fileLoader.saveAs(newFile);
         fileLoader.close();
     }
-
-    @Test
-    public void test() throws Exception {
-
-    }
 }
