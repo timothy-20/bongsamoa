@@ -1,48 +1,13 @@
 package com.timothy.bongsamoa.modules;
 
-import lombok.Getter;
+import jakarta.annotation.Nonnull;
 
 import java.nio.CharBuffer;
 
 public class TKDocument implements Appendable, Readable {
-    // 문서 객체의 커서를 위한 일종의 옵저버 역할을 하는 내부 클래스
-    protected static class Cursor extends TKMutableIntegerRange {
-        @Override
-        public void setStart(Integer start) {
-            super.setStart(start);
-
-            if (start >= 0) {
-                this.start = start;
-            }
-        }
-
-        @Override
-        public void setEnd(Integer end) {
-            super.setEnd(end);
-
-            if (end >= 0) {
-                this.end = end;
-            }
-        }
-
-        @Override
-        public void setRange(Integer start, Integer end) {
-            super.setRange(start, end);
-
-            if (start >= 0 && end >= 0) {
-                this.start = start;
-                this.end = end;
-            }
-        }
-
-        public boolean isPoint() {
-            return this.start.compareTo(this.end) == 0;
-        }
-    }
-
     // 문서 내에 문자열로 구성된 본분
     protected StringBuilder stringBuilder;
-    @Getter protected TKMutableIntegerRange cursor;
+    protected TKCursor<Integer> cursor;
     protected int readIndex;
 
     public TKDocument() {
@@ -51,59 +16,78 @@ public class TKDocument implements Appendable, Readable {
         this.readIndex = 0;
     }
 
-    public TKDocument insert(CharSequence csq) {
-//        this.stringBuilder.insert
-//        this.stringBuilder.replace()
-//        this.stringBuilder.setCharAt();
+    public TKMutableIntegerRange getCursor() {
+        return this.cursor;
+    }
+
+    public TKDocument insert(String str) {
+        int cursorEnd = this.cursor.getEnd();
+
+        if (this.cursor.isPoint()) {
+            this.stringBuilder.insert(cursorEnd, str);
+
+            int point = cursorEnd + str.length();
+            this.cursor.setRange(point, point);
+
+        } else {
+            int cursorStart = this.cursor.getStart();
+            this.stringBuilder.replace(cursorStart, cursorEnd, str);
+
+            int point = Math.min(cursorStart, cursorEnd) + str.length();
+            this.cursor.setRange(point, point);
+        }
 
         return this;
     }
 
     public TKDocument delete() {
-//        this.stringBuilder.delete()
-//        this.stringBuilder.deleteCharAt()
+        int cursorEnd = this.cursor.getEnd();
+
+        if (this.cursor.isPoint()) {
+            this.stringBuilder.deleteCharAt(cursorEnd);
+
+            int point = cursorEnd - 1;
+            this.cursor.setRange(point, point);
+
+        } else {
+            int cursorStart = this.cursor.getStart();
+            this.stringBuilder.delete(cursorStart, cursorEnd);
+
+            int point = Math.min(cursorStart, cursorEnd);
+            this.cursor.setRange(point, point);
+        }
 
         return this;
     }
 
     @Override
     public TKDocument append(char c) {
-        if (this.cursor.getEnd() == this.stringBuilder.length()) {
-            // 커서가 문자열의 마지막에 위치해 있는 경우
-
-
-        } else {
-            // 커서가 문자열 중간에 위치한 경우
-
-        }
-
-        return this;
+        this.cursor.moveBack();
+        return this.insert(String.valueOf(c));
     }
 
     @Override
     public TKDocument append(CharSequence csq) {
-        this.stringBuilder.append(csq);
-
-        int length = this.stringBuilder.length();
-        this.cursor.setRange(length, length);
-
-        return this;
+        this.cursor.moveBack();
+        return this.insert(String.valueOf(csq));
     }
 
     @Override
     public TKDocument append(CharSequence csq, int start, int end) {
+        this.cursor.moveBack();
+
         if (csq != null) {
-            this.append(csq.subSequence(start, end));
+            this.insert(String.valueOf(csq.subSequence(start, end)));
 
         } else {
-            this.append("null");
+            this.insert("null");
         }
 
         return this;
     }
 
     @Override
-    public int read(CharBuffer cb) throws NullPointerException {
+    public int read(@Nonnull CharBuffer cb) throws NullPointerException {
         if (cb == null) {
             throw new NullPointerException();
         }

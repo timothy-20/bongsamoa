@@ -5,7 +5,7 @@ import java.nio.CharBuffer;
 
 public class TKTextEditorTest {
     @Test
-    public void test() throws Exception {
+    public void testRead() throws Exception {
         String strUserInput = "Hello, World...";
         TKDocument document = new TKDocument();
         document.append(strUserInput);
@@ -22,5 +22,15 @@ public class TKTextEditorTest {
 
         System.out.println();
         System.out.println("Reading string length: " + length);
+    }
+
+    @Test
+    public void testStringBuilder() {
+        StringBuilder stringBuilder = new StringBuilder("Hello, World...");
+        stringBuilder.insert(stringBuilder.length(), "abcd");
+
+        char[] words = new char[]{'a'};
+
+        System.out.println(stringBuilder);
     }
 }
