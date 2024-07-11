@@ -1,13 +1,13 @@
 package com.timothy.bongsamoa.modules;
 
-public class TKTextMultiCursor implements TKCursor<TKIntegerRange> {
-    protected StringBuilder stringBuilder;
+public abstract class TKMultiCursor implements TKCursor<TKIntegerRange> {
     protected TKMutableIntegerRange position;
 
-    public TKTextMultiCursor(String text) {
-        this.stringBuilder = new StringBuilder(text);
-        this.position = new TKMutableIntegerRange(text.length(), text.length());
+    public TKMultiCursor() {
+        this.position = new TKMutableIntegerRange(0, 0);
     }
+
+    public abstract Integer getCapacity();
 
     @Override
     public TKIntegerRange getPosition() {
@@ -16,7 +16,7 @@ public class TKTextMultiCursor implements TKCursor<TKIntegerRange> {
 
     @Override
     public void moveTo(TKIntegerRange position) {
-        TKIntegerRange capacity = new TKIntegerRange(0, this.stringBuilder.length());
+        TKIntegerRange capacity = new TKIntegerRange(0, this.getCapacity());
 
         if (capacity.contain(position.getStart()) && capacity.contain(position.getEnd())) {
             this.position.setRange(position.getStart(), position.getEnd());
@@ -36,7 +36,7 @@ public class TKTextMultiCursor implements TKCursor<TKIntegerRange> {
     public void moveNext() {
         int newPosition = this.position.getEnd() + 1;
 
-        if (newPosition <= this.stringBuilder.length()) {
+        if (newPosition <= this.getCapacity()) {
             this.position.setEnd(newPosition);
         }
     }
@@ -48,6 +48,6 @@ public class TKTextMultiCursor implements TKCursor<TKIntegerRange> {
 
     @Override
     public void moveBack() {
-        this.position.setEnd(this.stringBuilder.length());
+        this.position.setEnd(this.getCapacity());
     }
 }

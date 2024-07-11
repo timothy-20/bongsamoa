@@ -1,17 +1,14 @@
 package com.timothy.bongsamoa.modules;
 
-public class TKTextCursor implements TKCursor<Integer> {
-    protected StringBuilder stringBuilder;
+public abstract class TKSingleCursor implements TKCursor<Integer> {
     protected Integer position;
 
-    public TKTextCursor(String text) {
-        this.stringBuilder = new StringBuilder(text);
-        this.position = this.stringBuilder.length();
+    public TKSingleCursor() {
+        this.position = 0;
     }
 
-    public TKTextCursor() {
-        this("");
-    }
+    public abstract Integer getCapacity();
+    public abstract char getCurrentCharacter();
 
     @Override
     public Integer getPosition() {
@@ -20,7 +17,9 @@ public class TKTextCursor implements TKCursor<Integer> {
 
     @Override
     public void moveTo(Integer position) {
-        this.position = position;
+        if (position >= 0 && position <= this.getCapacity()) {
+            this.position = position;
+        }
     }
 
     @Override
@@ -32,7 +31,7 @@ public class TKTextCursor implements TKCursor<Integer> {
 
     @Override
     public void moveNext() {
-        if (this.position < this.stringBuilder.length()) {
+        if (this.position < this.getCapacity()) {
             this.position++;
         }
     }
@@ -44,6 +43,6 @@ public class TKTextCursor implements TKCursor<Integer> {
 
     @Override
     public void moveBack() {
-        this.position = this.stringBuilder.length();
+        this.position = this.getCapacity();
     }
 }
