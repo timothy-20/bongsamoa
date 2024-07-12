@@ -1,10 +1,13 @@
 package com.timothy.bongsamoa.modules;
 
-public interface TKCursor<T> {
-    T getPosition();
-    void moveTo(T position);
+public interface TKCursor {
+    TKCursorPosition getPosition();
     void movePrev();
     void moveNext();
     void moveFront();
     void moveBack();
+}
+
+interface TKCursorPosition {
+
 }

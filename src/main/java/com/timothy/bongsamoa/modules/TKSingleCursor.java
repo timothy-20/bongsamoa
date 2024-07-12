@@ -1,6 +1,6 @@
 package com.timothy.bongsamoa.modules;
 
-public abstract class TKSingleCursor implements TKCursor<Integer> {
+public abstract class TKSingleCursor implements TKCursor {
     protected Integer position;
 
     public TKSingleCursor() {
@@ -8,18 +8,10 @@ public abstract class TKSingleCursor implements TKCursor<Integer> {
     }
 
     public abstract Integer getCapacity();
-    public abstract char getCurrentCharacter();
 
     @Override
     public Integer getPosition() {
         return this.position;
-    }
-
-    @Override
-    public void moveTo(Integer position) {
-        if (position >= 0 && position <= this.getCapacity()) {
-            this.position = position;
-        }
     }
 
     @Override

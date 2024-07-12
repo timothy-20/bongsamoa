@@ -1,7 +1,10 @@
 package com.timothy.bongsamoa.modules;
 
-public class TKTextSingleCursor extends TKSingleCursor implements TKCursorCopy, TKCursorSearch {
+public class TKTextSingleCursor extends TKSingleCursor {
+    // 1. 데이터를 커서가 직접 가지는 것이 아닌, 오퍼레이터를 합성하여 사용하는 방법
+    // 2. 오퍼레이터가 데이터에 직접적으로 접근
     protected StringBuilder stringBuilder;
+    protected TKModifiable modifiable;
 
     public TKTextSingleCursor(CharSequence cs) {
         super();
@@ -12,31 +15,5 @@ public class TKTextSingleCursor extends TKSingleCursor implements TKCursorCopy, 
     @Override
     public Integer getCapacity() {
         return this.stringBuilder.length();
-    }
-
-    @Override
-    public char getCurrentCharacter() {
-        int newPosition = this.position.equals(this.getCapacity()) ? this.position - 1 : this.position;
-        return this.stringBuilder.charAt(newPosition);
-    }
-
-    @Override
-    public void copy() {
-
-    }
-
-    @Override
-    public void cut() {
-
-    }
-
-    @Override
-    public void paste() {
-
-    }
-
-    @Override
-    public Integer[] search() {
-        return new Integer[0];
     }
 }

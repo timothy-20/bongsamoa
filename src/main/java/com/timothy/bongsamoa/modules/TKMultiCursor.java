@@ -1,6 +1,6 @@
 package com.timothy.bongsamoa.modules;
 
-public abstract class TKMultiCursor implements TKCursor<TKIntegerRange> {
+public abstract class TKMultiCursor implements TKCursor {
     protected TKMutableIntegerRange position;
 
     public TKMultiCursor() {
@@ -12,15 +12,6 @@ public abstract class TKMultiCursor implements TKCursor<TKIntegerRange> {
     @Override
     public TKIntegerRange getPosition() {
         return this.position;
-    }
-
-    @Override
-    public void moveTo(TKIntegerRange position) {
-        TKIntegerRange capacity = new TKIntegerRange(0, this.getCapacity());
-
-        if (capacity.contain(position.getStart()) && capacity.contain(position.getEnd())) {
-            this.position.setRange(position.getStart(), position.getEnd());
-        }
     }
 
     @Override
