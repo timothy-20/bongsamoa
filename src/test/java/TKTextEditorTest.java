@@ -1,4 +1,5 @@
 import com.timothy.bongsamoa.modules.TKDocument;
+import com.timothy.bongsamoa.modules.temp.TKEditor;
 import org.junit.jupiter.api.Test;
 
 import java.nio.CharBuffer;
@@ -25,11 +26,7 @@ public class TKTextEditorTest {
 //    }
 
     @Test
-    public void testStringBuilder() {
-        StringBuilder stringBuilder = new StringBuilder("Hello, World...");
-        CharSequence cs = stringBuilder.subSequence(0, 1);
-        char ch = stringBuilder.charAt(0);
-
-        System.out.println(stringBuilder);
+    public void test() {
+        TKEditor editor = null;
     }
 }
