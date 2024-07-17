@@ -10,13 +10,15 @@ public class TKTextCursor {
     }
 
     protected TKMutableIntegerRange position;
-    protected int limit;
     protected int capacity;
     protected Mode mode;
 
+    public TKTextCursor(String content) {
+
+    }
+
     public TKTextCursor(int start, int end) {
         this.position = new TKMutableIntegerRange(start, end);
-        this.capacity = Math.max(start, end);
         this.limit = 0;
         this.mode = Mode.SINGLE;
     }
@@ -32,7 +34,18 @@ public class TKTextCursor {
     }
 
     public void moveTo(int start, int end) {
+        TKIntegerRange capacity;
 
+        if (this.limit > 0) {
+            capacity = new TKIntegerRange(0, this.limit);
+
+        } else {
+            capacity = new TKIntegerRange(0, Math.max(start, end));
+        }
+
+        if (capacity.contain(start) && capacity.contain(end)) {
+            this.position.setRange(start, end);
+        }
     }
 
     // 단일 커서 상태 및 다중 커서 상태 각각에 대해 구현이 달라야 함
@@ -40,23 +53,46 @@ public class TKTextCursor {
         int newPosition = this.position.getEnd() - 1;
 
         if (newPosition >= 0) {
-            this.position.setEnd(newPosition);
+            if (this.position.getStart().equals(this.position.getEnd())) {
+                this.position.setRange(newPosition, newPosition);
+
+            } else {
+                this.position.setEnd(newPosition);
+            }
         }
     }
 
     public void moveNext() {
         int newPosition = this.position.getEnd() + 1;
 
-        if (this.limit > 0 && this.limit >= newPosition) {
+        if (this.limit > 0 && this.limit < newPosition) {
+            newPosition = this.limit;
+        }
+
+        if (this.position.getStart().equals(this.position.getEnd())) {
+            this.position.setRange(newPosition, newPosition);
+
+        } else {
             this.position.setEnd(newPosition);
         }
     }
 
     public void moveFront() {
-        this.position.setEnd(0);
+        if (this.position.getStart().equals(this.position.getEnd())) {
+            this.position.setRange(0, 0);
+
+        } else {
+            this.position.setEnd(0);
+        }
     }
 
     public void moveBack() {
+        if (this.position.getStart().equals(this.position.getEnd())) {
+
+        } else {
+
+        }
+
         this.position.setEnd(this.getCapacity());
     }
 }
