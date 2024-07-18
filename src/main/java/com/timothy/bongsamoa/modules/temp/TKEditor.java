@@ -1,12 +1,14 @@
 package com.timothy.bongsamoa.modules.temp;
 
 import java.io.Closeable;
+import java.io.IOException;
 
 public interface TKEditor extends Closeable {
-    void open(String filePath);
-    void save();
-    void saveAs(String filePath);
+    void create(String filePath) throws Exception ;
+    void open(String filePath) throws Exception;
+    void save() throws Exception;
+    void saveAs(String filePath) throws Exception;
     TKEditorAccessor edit();
-    void restore();
-    void restoreAs(int key);
+    void restore() throws Exception;
+    void restoreAs(int key) throws Exception;
 }

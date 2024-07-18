@@ -3,96 +3,81 @@ package com.timothy.bongsamoa.modules.temp;
 import com.timothy.bongsamoa.modules.TKIntegerRange;
 import com.timothy.bongsamoa.modules.TKMutableIntegerRange;
 
+//interface TKCursor {
+//    TKCursorPosition getPosition();
+//    void movePrev();
+//    void moveNext();
+//    void moveFront();
+//    void moveBack();
+//}
+//
+//interface TKCursorPosition {
+//
+//}
+
 public class TKTextCursor {
+    @FunctionalInterface
+    public interface CapacityObserver {
+        int getCapacity();
+    }
+
     public enum Mode {
         SINGLE,
         MULTI
     }
 
+    public Mode mode;
+    protected CapacityObserver capacityObserver;
     protected TKMutableIntegerRange position;
-    protected int capacity;
-    protected Mode mode;
 
-    public TKTextCursor(String content) {
-
-    }
-
-    public TKTextCursor(int start, int end) {
-        this.position = new TKMutableIntegerRange(start, end);
-        this.limit = 0;
+    public TKTextCursor(CapacityObserver capacityObserver) {
         this.mode = Mode.SINGLE;
-    }
-
-    public void setLimit(int limit) {
-        if (limit > 0) {
-            this.limit = limit;
-        }
+        this.capacityObserver = capacityObserver;
+        int capacity = this.capacityObserver.getCapacity();
+        this.position = new TKMutableIntegerRange(capacity, capacity);
     }
 
     public TKIntegerRange getPosition() {
         return this.position;
     }
 
+    public void moveTo(int point) {
+        this.setPoint(point);
+    }
+
     public void moveTo(int start, int end) {
-        TKIntegerRange capacity;
-
-        if (this.limit > 0) {
-            capacity = new TKIntegerRange(0, this.limit);
-
-        } else {
-            capacity = new TKIntegerRange(0, Math.max(start, end));
-        }
+        TKIntegerRange capacity = new TKIntegerRange(0, this.capacityObserver.getCapacity());
 
         if (capacity.contain(start) && capacity.contain(end)) {
             this.position.setRange(start, end);
         }
     }
 
-    // 단일 커서 상태 및 다중 커서 상태 각각에 대해 구현이 달라야 함
     public void movePrev() {
-        int newPosition = this.position.getEnd() - 1;
-
-        if (newPosition >= 0) {
-            if (this.position.getStart().equals(this.position.getEnd())) {
-                this.position.setRange(newPosition, newPosition);
-
-            } else {
-                this.position.setEnd(newPosition);
-            }
-        }
+        this.setPoint(this.position.getEnd() - 1);
     }
 
     public void moveNext() {
-        int newPosition = this.position.getEnd() + 1;
-
-        if (this.limit > 0 && this.limit < newPosition) {
-            newPosition = this.limit;
-        }
-
-        if (this.position.getStart().equals(this.position.getEnd())) {
-            this.position.setRange(newPosition, newPosition);
-
-        } else {
-            this.position.setEnd(newPosition);
-        }
+        this.setPoint(this.position.getEnd() + 1);
     }
 
     public void moveFront() {
-        if (this.position.getStart().equals(this.position.getEnd())) {
-            this.position.setRange(0, 0);
-
-        } else {
-            this.position.setEnd(0);
-        }
+        this.setPoint(0);
     }
 
     public void moveBack() {
-        if (this.position.getStart().equals(this.position.getEnd())) {
+        this.setPoint(this.capacityObserver.getCapacity());
+    }
 
-        } else {
+    protected void setPoint(int point) {
+        switch (this.mode) {
+            case SINGLE:
+                this.position.setRange(point, point);
+                break;
 
+            case MULTI:
+                this.position.setEnd(point);
+                break;
         }
-
-        this.position.setEnd(this.getCapacity());
     }
 }

@@ -1,8 +1,15 @@
 import com.timothy.bongsamoa.modules.TKDocument;
+import com.timothy.bongsamoa.modules.TKIntegerRange;
 import com.timothy.bongsamoa.modules.temp.TKEditor;
+import com.timothy.bongsamoa.modules.temp.TKTextCursor;
+import com.timothy.bongsamoa.modules.temp.TKTextEditor;
+import com.timothy.bongsamoa.modules.temp.TKTextEditorAccessor;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.nio.CharBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class TKTextEditorTest {
 //    @Test
@@ -27,6 +34,55 @@ public class TKTextEditorTest {
 
     @Test
     public void test() {
-        TKEditor editor = null;
+        StringBuilder stringBuilder = new StringBuilder("This is test.");
+        TKTextCursor cursor = new TKTextCursor(stringBuilder::length);
+        cursor.moveBack();
+
+        TKIntegerRange range = cursor.getPosition();
+
+        stringBuilder.append(" ABCDEF");
+        cursor.mode = TKTextCursor.Mode.MULTI;
+        cursor.moveBack();
+
+        TKIntegerRange range1 = cursor.getPosition();
+
+        System.out.println("");
+    }
+
+    @Test
+    public void test2() throws IOException {
+        String filePathString = "C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\aaa.txt";
+        Path path = Path.of(filePathString);
+        TKTextEditor textEditor = new TKTextEditor() {
+            @Override
+            public TKTextEditorAccessor edit() {
+                return null;
+            }
+
+            @Override
+            public TKTextCursor getCursor() {
+                return null;
+            }
+
+            @Override
+            public String getContent() {
+                return "";
+            }
+
+            @Override
+            public void undo() {
+
+            }
+
+            @Override
+            public void redo() {
+
+            }
+        };
+
+        textEditor.create(filePathString);
+        textEditor.close();
+
+        System.out.println("");
     }
 }
