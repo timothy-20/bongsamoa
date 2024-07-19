@@ -1,7 +1,6 @@
 package com.timothy.bongsamoa.modules.temp;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 public interface TKEditor extends Closeable {
     void create(String filePath) throws Exception ;
