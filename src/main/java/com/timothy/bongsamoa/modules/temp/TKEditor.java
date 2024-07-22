@@ -8,6 +8,4 @@ public interface TKEditor extends Closeable {
     void save() throws Exception;
     void saveAs(String filePath) throws Exception;
     TKEditorAccessor edit();
-    void restore() throws Exception;
-    void restoreAs(int key) throws Exception;
 }

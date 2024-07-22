@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.nio.CharBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TKTextEditorTest {
 //    @Test
@@ -51,38 +53,8 @@ public class TKTextEditorTest {
 
     @Test
     public void test2() throws IOException {
-        String filePathString = "C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\aaa.txt";
-        Path path = Path.of(filePathString);
-        TKTextEditor textEditor = new TKTextEditor() {
-            @Override
-            public TKTextEditorAccessor edit() {
-                return null;
-            }
+        String filePath = "C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\a";
 
-            @Override
-            public TKTextCursor getCursor() {
-                return null;
-            }
 
-            @Override
-            public String getContent() {
-                return "";
-            }
-
-            @Override
-            public void undo() {
-
-            }
-
-            @Override
-            public void redo() {
-
-            }
-        };
-
-        textEditor.create(filePathString);
-        textEditor.close();
-
-        System.out.println("");
     }
 }

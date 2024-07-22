@@ -1,0 +1,78 @@
+package com.timothy.bongsamoa.modules.temp;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
+
+public class TKCLIEditorAccessor {
+    private final FileChannel fileChannel;
+
+    public TKCLIEditorAccessor(FileChannel fileChannel) {
+        this.fileChannel = fileChannel;
+    }
+
+    // Readable
+    public String read(int start, int end) throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        int readBytes = 0;
+
+        this.fileChannel.read()
+
+        while ((readBytes = this.fileChannel.read(buffer)) != -1) {
+            outputStream.write(buffer.array(), 0, readBytes);
+            buffer.clear();
+        }
+
+        return outputStream.toString(StandardCharsets.UTF_8);
+    }
+
+    public String readAll() throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        int readBytes = 0;
+
+        while ((readBytes = this.fileChannel.read(buffer)) != -1) {
+            outputStream.write(buffer.array(), 0, readBytes);
+            buffer.clear();
+        }
+
+        return outputStream.toString(StandardCharsets.UTF_8);
+    }
+
+    // Writable
+    void append(String text) {
+
+    }
+
+    void insert(int index, String text) {
+
+    }
+
+    void replace(int start, int end, String text) {
+
+    }
+
+    void delete(int start, int end) {
+
+    }
+
+    // Copiable
+    void copy(int start, int end) {
+
+    }
+
+    void cut(int start, int end) {
+
+    }
+
+    void paste(int index) {
+
+    }
+
+    void paste(int start, int end) {
+
+    }
+}

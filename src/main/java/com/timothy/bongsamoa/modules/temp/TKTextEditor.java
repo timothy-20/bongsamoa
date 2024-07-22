@@ -1,15 +1,14 @@
 package com.timothy.bongsamoa.modules.temp;
 
-import ch.qos.logback.core.joran.sanity.Pair;
-
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.DosFileAttributes;
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,9 +16,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class TKTextEditor implements TKEditor {
-    protected Path originalFile;
-    protected Path tempFile;
-    protected FileChannel fileChannel;
+    private Path originalFile;
+    private Path tempFile;
+    private FileChannel fileChannel;
 
     public TKTextEditor() {
         this.originalFile = null;
@@ -30,10 +29,23 @@ public abstract class TKTextEditor implements TKEditor {
     @Override
     public void create(String filePath) throws IOException {
         if (filePath == null) {
-            throw new IllegalArgumentException("열기 위한 파일 경로에 대한 문자열이 null입니다.");
+            throw new IllegalArgumentException("생성하기 위한 파일 경로에 대한 문자열이 null입니다.");
         }
 
-        Path newFile = this.createFile(Path.of(filePath));
+        Path newFile = Path.of(filePath);
+
+        if (Files.exists(newFile)) {
+            // 생성하려는 파일이 존재하는 경우
+            if (Files.isDirectory(newFile)) {
+                // 존재하는 파일이 디렉토리인 경우
+                throw new RuntimeException("존재하는 디렉토리에 대한 값입니다. 해당 값으로 파일을 생성할 수 없습니다.");
+            }
+
+            String newFileName = this.createDistinctFileName(newFile);
+            newFile = Path.of(newFile.getParent().toString(), newFileName);
+        }
+
+        Files.createFile(newFile);
         this.open(newFile.toString());
     }
 
@@ -45,27 +57,24 @@ public abstract class TKTextEditor implements TKEditor {
 
         Path originalFile = Path.of(filePath);
 
-        if (!Files.exists(originalFile)) {
-            throw new RuntimeException("파일이 존재하지 않습니다.");
+        if (!Files.exists(originalFile) || !Files.isRegularFile(originalFile)) {
+            throw new RuntimeException("파일이 존재하지 않거나, 파일이 아닐 수 있습니다.");
         }
 
-        if (!Files.isRegularFile(originalFile)) {
-            throw new RuntimeException("경로 객체가 파일에 대한 것이 아닙니다.");
-        }
-
+        Map<String, String> parsedFileName = this.parseFileName(originalFile);
+        // 임시 파일 생성
+        this.tempFile = Files.createTempFile(originalFile.getParent(), parsedFileName.get("name"), parsedFileName.get("extension"));
+        this.fileChannel = FileChannel.open(this.tempFile, StandardOpenOption.WRITE, StandardOpenOption.DELETE_ON_CLOSE);
         this.originalFile = originalFile;
-        this.tempFile = this.createTempFile(this.originalFile, this.originalFile.getParent());
-        this.fileChannel = FileChannel.open(this.tempFile, StandardOpenOption.WRITE);
     }
 
     @Override
     public void save() throws IOException {
-        Files.copy(this.tempFile, this.originalFile);
-        Files.setLastModifiedTime(this.originalFile, FileTime.fromMillis(System.currentTimeMillis()));
+        this.copyTo(this.tempFile, this.originalFile);
     }
 
     @Override
-    public void saveAs(String filePath) {
+    public void saveAs(String filePath) throws IOException {
         if (filePath == null) {
             throw new IllegalArgumentException("저장할 대상 파일 경로를 가져오지 못했습니다.");
         }
@@ -73,24 +82,15 @@ public abstract class TKTextEditor implements TKEditor {
         Path targetFile = Path.of(filePath);
 
         if (Files.exists(targetFile)) {
-            if (!Files.isRegularFile(targetFile)) {
-
+            if (Files.isDirectory(targetFile)) {
+                throw new RuntimeException("존재하는 디렉토리에 대한 값입니다. 대상에 파일 내용을 저장할 수 없습니다.");
             }
 
+            this.copyTo(this.tempFile, targetFile);
+
         } else {
-
+            this.copyTo(this.tempFile, Files.createFile(targetFile));
         }
-
-    }
-
-    @Override
-    public void restore() {
-
-    }
-
-    @Override
-    public void restoreAs(int key) {
-
     }
 
     @Override
@@ -103,22 +103,12 @@ public abstract class TKTextEditor implements TKEditor {
     @Override
     public abstract TKTextEditorAccessor edit();
     public abstract TKTextCursor getCursor();
-    public abstract String getContent();
+    public abstract String getContent() throws Exception;
     public abstract void undo();
     public abstract void redo();
 
-    protected Path createFile(Path newFile) throws IOException {
-        if (newFile == null) {
-            throw new IllegalArgumentException("생성할 파일에 대한 경로값이 없습니다.");
-        }
-
-        if (Files.exists(newFile)) {
-            // 생성하려는 파일이 존재하는 경우
-            String newFileName = this.createDistinctFileName(newFile);
-            newFile = Path.of(newFile.getParent().toString(), newFileName);
-        }
-
-        return Files.createFile(newFile);
+    protected FileChannel getFileChannel() {
+        return this.fileChannel;
     }
 
     private String createDistinctFileName(Path originalFile) throws IOException {
@@ -163,27 +153,21 @@ public abstract class TKTextEditor implements TKEditor {
         String fileName = file.getFileName().toString();
         int dotIndex = fileName.lastIndexOf('.');
         Map<String, String> result = new HashMap<>(2);
-        result.put("name", fileName.substring(0, dotIndex));
-        result.put("extension", fileName.substring(dotIndex));
+
+        if (dotIndex == -1) {
+            result.put("name", fileName);
+            result.put("extension", "");
+
+        } else {
+            result.put("name", fileName.substring(0, dotIndex));
+            result.put("extension", fileName.substring(dotIndex));
+        }
+
         return result;
     }
 
-    protected Path createTempFile(Path originalFile, Path directory) throws IOException {
-        if (originalFile == null || !Files.isRegularFile(originalFile)) {
-            throw new IllegalArgumentException("값이 없거나 실제로 존재하지 않는 원본 파일 객체입니다.");
-        }
-
-        if (directory == null || !Files.isDirectory(directory)) {
-            throw new IllegalArgumentException("임시 파일을 위한 디렉토리 객체가 정상적이지 않습니다.");
-        }
-
-        // 확장자를 제거한 파일명 가져오기
-        String fileName = originalFile.getFileName().toString();
-        int dotIndex = fileName.lastIndexOf('.');
-        String fileExtension = fileName.substring(dotIndex);
-        fileName = fileName.substring(0, dotIndex);
-
-        // 임시 파일 생성
-        return Files.createTempFile(directory, fileName, fileExtension);
+    private void copyTo(Path sourceFile, Path destinationFile) throws IOException {
+        Files.copy(sourceFile, destinationFile);
+        Files.setLastModifiedTime(destinationFile, FileTime.fromMillis(System.currentTimeMillis()));
     }
 }
