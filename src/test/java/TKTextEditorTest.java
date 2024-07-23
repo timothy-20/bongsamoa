@@ -1,15 +1,15 @@
 import com.timothy.bongsamoa.modules.TKDocument;
 import com.timothy.bongsamoa.modules.TKIntegerRange;
-import com.timothy.bongsamoa.modules.temp.TKEditor;
-import com.timothy.bongsamoa.modules.temp.TKTextCursor;
-import com.timothy.bongsamoa.modules.temp.TKTextEditor;
-import com.timothy.bongsamoa.modules.temp.TKTextEditorAccessor;
+import com.timothy.bongsamoa.modules.temp.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.CharBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,9 +52,59 @@ public class TKTextEditorTest {
     }
 
     @Test
-    public void test2() throws IOException {
-        String filePath = "C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\a";
+    public void testRead() throws IOException {
+        Path file = Path.of("C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\aaa.txt");
 
+        if (Files.exists(file)) {
+            FileChannel fileChannel = FileChannel.open(file, StandardOpenOption.READ, StandardOpenOption.WRITE);
+            TKCLIEditorAccessor accessor = new TKCLIEditorAccessor(fileChannel);
+            accessor.setBufferSize(8);
+
+            String result1 = accessor.read(10, 42);
+            System.out.println("length:" + result1.length());
+            System.out.println(result1);
+
+            String result2 = accessor.readAll();
+            System.out.println("length:" + result2.length());
+            System.out.println(result2);
+
+        } else {
+            System.out.println("Fail testRead.");
+        }
+    }
+
+    @Test
+    public void testEdit() throws IOException {
+        Path file = Path.of("C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\aaa.txt");
+
+        if (Files.exists(file)) {
+            FileChannel fileChannel = FileChannel.open(file, StandardOpenOption.READ, StandardOpenOption.WRITE);
+            TKCLIEditorAccessor accessor = new TKCLIEditorAccessor(fileChannel);
+            accessor.append("Hello World, ");
+            accessor.insert(3, "[INSERT]");
+            accessor.replace(0, 3, "[REPLACE]");
+            accessor.delete(17, 7);
+
+        } else {
+            System.out.println("Fail testEdit.");
+        }
+    }
+
+    @Test
+    public void testAdvancedEdit() throws IOException {
+        Path file = Path.of("C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\aaa.txt");
+
+        if (Files.exists(file)) {
+            FileChannel fileChannel = FileChannel.open(file, StandardOpenOption.READ, StandardOpenOption.WRITE);
+            TKCLIEditorAccessor accessor = new TKCLIEditorAccessor(fileChannel);
+
+        } else {
+            System.out.println("Fail testEdit.");
+        }
+    }
+
+    @Test
+    public void testCopy() throws IOException {
 
     }
 }
