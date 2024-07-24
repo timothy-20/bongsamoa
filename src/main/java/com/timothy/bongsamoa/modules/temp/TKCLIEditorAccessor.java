@@ -4,9 +4,12 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class TKCLIEditorAccessor {
     private final FileChannel fileChannel;
@@ -70,6 +73,45 @@ public class TKCLIEditorAccessor {
     // Writable
     // 0. 아예 새로운 내용을 입력할 수 있는 식의 write 함수 지원 여부에 대해 생각해 볼 것.
     // 1. 파일내의 문자열을 처리할 때, 접근하고 있는 라인에 대해서만 처리하도록 수정(replace 시 문자열 뒤로 밀기에서 발생하는 성능 문제).
+    public void test(String text) throws IOException {
+        long fileSize = this.fileChannel.size();
+        MappedByteBuffer byteBuffer = this.fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileSize);
+        StringBuilder stringBuilder = new StringBuilder();
+        List<String> result = new ArrayList<>();
+
+//        byteBuffer.slice()
+
+        while (byteBuffer.position() < fileSize) {
+            char ch = (char)(byteBuffer.get() & 0xff);
+
+            if (ch == '\n') {
+                result.add(stringBuilder.toString());
+                stringBuilder.setLength(0);
+                continue;
+            }
+
+            stringBuilder.append(ch);
+        }
+
+        System.out.println(result);
+
+//        List<ByteBuffer> buffers = new ArrayList<>();
+//
+//        for (int i = 0; i < 5; i++) {
+//            buffers.add(ByteBuffer.allocate(this.bufferSize));
+//        }
+//
+//        long readBytes = this.fileChannel.read(buffers.toArray(new ByteBuffer[5]));
+//        StringBuilder stringBuilder = new StringBuilder();
+//
+//        for (ByteBuffer buffer : buffers) {
+//            stringBuilder.append(new String(buffer.array(), StandardCharsets.UTF_8));
+//        }
+//
+//        System.out.println(readBytes);
+//        System.out.println(stringBuilder);
+    }
+
     public void append(String text) throws IOException {
         if (text == null) {
             throw new IllegalArgumentException("더할 문자열의 값이 null 입니다.");

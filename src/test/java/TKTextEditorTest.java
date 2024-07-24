@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 public class TKTextEditorTest {
 //    @Test
@@ -97,6 +98,13 @@ public class TKTextEditorTest {
         if (Files.exists(file)) {
             FileChannel fileChannel = FileChannel.open(file, StandardOpenOption.READ, StandardOpenOption.WRITE);
             TKCLIEditorAccessor accessor = new TKCLIEditorAccessor(fileChannel);
+            accessor.setBufferSize(4);
+            accessor.test("test");
+
+            String content = accessor.readAll();
+            String[] lines = content.split("\r\n");
+
+            System.out.println("");
 
         } else {
             System.out.println("Fail testEdit.");
