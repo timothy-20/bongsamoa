@@ -3,16 +3,16 @@ import com.timothy.bongsamoa.modules.TKIntegerRange;
 import com.timothy.bongsamoa.modules.temp.*;
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.nio.file.*;
+import java.util.*;
 
 public class TKTextEditorTest {
 //    @Test
@@ -108,6 +108,38 @@ public class TKTextEditorTest {
 
         } else {
             System.out.println("Fail testEdit.");
+        }
+    }
+
+    @Test
+    public void testAdvancedEdit2() throws Exception {
+        Path file = Path.of("C:\\Users\\timothy\\IdeaProjects\\bongsamoa\\temp\\aaa.txt");
+
+        if (Files.exists(file)) {
+            FileChannel fileChannel = FileChannel.open(file, StandardOpenOption.READ, StandardOpenOption.WRITE);
+            ByteBuffer byteBuffer = ByteBuffer.allocate(1024/*(int)fileChannel.size()*/);
+            List<ByteBuffer> result = new ArrayList<>();
+
+            fileChannel.read(byteBuffer);
+            byteBuffer.flip();
+
+            byteBuffer.position(3);
+            result.add(byteBuffer.slice());
+
+            byteBuffer.position(6);
+            result.add(byteBuffer.slice());
+
+            for (ByteBuffer element : result) {
+                boolean hasArray = element.hasArray();
+
+                System.out.println("");
+            }
+
+
+            fileChannel.close();
+
+        } else {
+            throw new RuntimeException("");
         }
     }
 

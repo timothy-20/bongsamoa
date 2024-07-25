@@ -70,46 +70,40 @@ public class TKCLIEditorAccessor {
         return this.read(0, Integer.MAX_VALUE);
     }
 
+
+    // MappedByteBuffer byteBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileSize);
+
     // Writable
     // 0. 아예 새로운 내용을 입력할 수 있는 식의 write 함수 지원 여부에 대해 생각해 볼 것.
     // 1. 파일내의 문자열을 처리할 때, 접근하고 있는 라인에 대해서만 처리하도록 수정(replace 시 문자열 뒤로 밀기에서 발생하는 성능 문제).
     public void test(String text) throws IOException {
-        long fileSize = this.fileChannel.size();
-        MappedByteBuffer byteBuffer = this.fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileSize);
-        StringBuilder stringBuilder = new StringBuilder();
-        List<String> result = new ArrayList<>();
+        int fileSize = (int)this.fileChannel.size();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(fileSize);
+        this.fileChannel.read(byteBuffer);
+        byteBuffer.flip();
 
-//        byteBuffer.slice()
+        List<MappedByteBuffer> result = new ArrayList<>();
+        int offset = 0, position;
 
-        while (byteBuffer.position() < fileSize) {
-            char ch = (char)(byteBuffer.get() & 0xff);
+        while ((position = byteBuffer.position()) < fileSize) {
+            if ((char)(byteBuffer.get() & 0xff) == '\n') {
+                MappedByteBuffer lineByteBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, offset, position - offset);
+                result.add(lineByteBuffer);
 
-            if (ch == '\n') {
-                result.add(stringBuilder.toString());
-                stringBuilder.setLength(0);
-                continue;
+                offset = position + 1;
             }
-
-            stringBuilder.append(ch);
         }
 
-        System.out.println(result);
+        result.add(this.fileChannel.map(FileChannel.MapMode.READ_WRITE, offset, position - offset));
 
-//        List<ByteBuffer> buffers = new ArrayList<>();
-//
-//        for (int i = 0; i < 5; i++) {
-//            buffers.add(ByteBuffer.allocate(this.bufferSize));
-//        }
-//
-//        long readBytes = this.fileChannel.read(buffers.toArray(new ByteBuffer[5]));
-//        StringBuilder stringBuilder = new StringBuilder();
-//
-//        for (ByteBuffer buffer : buffers) {
-//            stringBuilder.append(new String(buffer.array(), StandardCharsets.UTF_8));
-//        }
-//
-//        System.out.println(readBytes);
-//        System.out.println(stringBuilder);
+        for (MappedByteBuffer element : result) {
+            // FileChannel에서 map으로 접근한 메모리를 array()로 불러내는 것은 지원되지 않는 것으로 보임
+            boolean hasArray = element.hasArray();
+
+            byte[] bytes = element.array();
+            String line = new String(element.array(), StandardCharsets.UTF_8);
+            System.out.println(line);
+        }
     }
 
     public void append(String text) throws IOException {
