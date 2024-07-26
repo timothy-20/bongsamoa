@@ -15,7 +15,7 @@ public class TKCLIEditorAccessor {
     private final FileChannel fileChannel;
     private int bufferSize;
 
-    public TKCLIEditorAccessor(FileChannel fileChannel) {
+    public TKCLIEditorAccessor(FileChannel fileChannel)  {
         this.fileChannel = fileChannel;
         this.bufferSize = 1024;
     }
@@ -28,12 +28,20 @@ public class TKCLIEditorAccessor {
         this.bufferSize = bufferSize;
     }
 
-    public int getSize() throws IOException {
-        return (int)this.fileChannel.size();
+    public long getSize() throws IOException {
+        return this.fileChannel.size();
     }
 
     // Readable
     public String read(int offset, int length) throws IOException {
+        return new String(this.readBytes(offset, length), StandardCharsets.UTF_8);
+    }
+
+    public String readAll() throws IOException {
+        return new String(this.readBytes(0, (int)this.getSize()), StandardCharsets.UTF_8);
+    }
+
+    protected byte[] readBytes(int offset, int length) throws IOException {
         if (offset < 0 || length < 0) {
             throw new IllegalArgumentException("오프셋과 읽어올 문자의 길이는 최소 0보다 커야합니다.");
         }
@@ -63,32 +71,34 @@ public class TKCLIEditorAccessor {
             }
         }
 
-        return outputStream.toString(StandardCharsets.UTF_8);
+        return outputStream.toByteArray();
     }
-
-    public String readAll() throws IOException {
-        return this.read(0, Integer.MAX_VALUE);
-    }
-
-
-    // MappedByteBuffer byteBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileSize);
 
     // Writable
     // 0. 아예 새로운 내용을 입력할 수 있는 식의 write 함수 지원 여부에 대해 생각해 볼 것.
     // 1. 파일내의 문자열을 처리할 때, 접근하고 있는 라인에 대해서만 처리하도록 수정(replace 시 문자열 뒤로 밀기에서 발생하는 성능 문제).
     public void test(String text) throws IOException {
-        int fileSize = (int)this.fileChannel.size();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(fileSize);
-        this.fileChannel.read(byteBuffer);
-        byteBuffer.flip();
+        int fileSize = (int)this.getSize();
+        byte[] fileBytes = this.readBytes(0, fileSize);
+        ByteBuffer byteBuffer = ByteBuffer.wrap(fileBytes);
+        List<ByteBuffer> result = new ArrayList<>();
+        int offset = 0, length = 0;
 
-        List<MappedByteBuffer> result = new ArrayList<>();
-        int offset = 0, position;
+        for (int i = 0; i < fileSize; i++) {
+            if ((char)(byteBuffer.get(i) & 0xff) == '\n') {
+                byteBuffer.limit(i);
+                result.add(byteBuffer.slice());
+
+                byteBuffer.limit(fileSize);
+                byteBuffer.position(i + 1);
+            }
+        }
 
         while ((position = byteBuffer.position()) < fileSize) {
             if ((char)(byteBuffer.get() & 0xff) == '\n') {
-                MappedByteBuffer lineByteBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, offset, position - offset);
-                result.add(lineByteBuffer);
+
+
+                result.add(byteBuffer.slice());
 
                 offset = position + 1;
             }
